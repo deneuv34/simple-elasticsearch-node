@@ -5,6 +5,8 @@ var bodyParser = require('body-parser');
 var multer = require('multer');
 var mysql = require('mysql');
 var client = require('./elastic');
+const createMapping = require('./createIndex');
+
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -13,6 +15,7 @@ const connection = mysql.createConnection({
     database: 'testingexpress',
 })
 
+createMapping();
 connection.connect();
 app.use(cors());
 app.use(bodyParser.json());
@@ -22,30 +25,25 @@ app.get('/del', (req, res) => {
     connection.query(`delete from user_list`);
     res.json({ message: 'all data deleted' });
 })
+var jsonData = {};
+const getData = () => {
+    connection.query(`select * from user_list`, (error, result, fields) => {
+        if (error) throw error;
+        jsonData = JSON.parse(result);
+    });
+}
 
 app.post('/add', (req, res) => {
     console.log(req.statusCode);
     connection.query(`insert into user_list (name_first, name_last, age) values ("${req.body.first_name}", "${req.body.last_name}", ${req.body.age})`)
     res.json({ request: req.body, message: 'Success' });
-    client.indices.create({
-        index: 'users-test',
-        query: res.json(req.body)
-    }, (err, respon, status) => {
-        if(err) {
-            console.log(err);
-        } else {
-            console.log(respon);
-        }
-    })
-})
-
+});
 
 app.use('/users', (req, res) => {
     connection.query(`select * from user_list`, (error, result, fields) => {
         if (error) throw error;
         res.json({ message : 'Welcome to my world', data: result });
     });
-    
 })
 
-app.listen(3000);
+app.listen(3000, console.log('Server is running') );
