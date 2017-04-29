@@ -18,7 +18,7 @@ const createMapping = () => client.indices.create({
     body: body
 }, function(err, resp, status) {
     if(err) {
-        console.log('error create elastic', err);
+        console.log('error create elastic or already created');
     } else {
         console.log(resp, 'Success');
     }
